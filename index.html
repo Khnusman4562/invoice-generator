@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Invoice Form</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 700px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="number"] {
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      width: 100%;
+    }
+
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+
+    th, td {
+      border: 1px solid black;
+      padding: 8px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .addbutton,
+    .removeBtn,
+    button[type="submit"] {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .removeBtn {
+      background-color: red;
+    }
+
+    .addbutton:hover,
+    .removeBtn:hover,
+    button[type="submit"]:hover {
+      opacity: 0.9;
+    }
+
+    @media (max-width: 768px) {
+      th, td {
+        font-size: 12px;
+        padding: 6px;
+      }
+
+      input {
+        font-size: 12px;
+        padding: 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Fill Invoice Details</h2>
+    <form id="invoiceForm">
+      <label>Invoice No:</label>
+      <input type="text" name="invoiceNo" required />
+      <label>Invoice Date:</label>
+      <input type="date" name="invoiceDate" required />
+      <label>State:</label>
+      <input type="text" name="state" required />
+      <label>State Code:</label>
+      <input type="text" name="stateCode" required />
+      <label>Transport Mode:</label>
+      <input type="text" name="transportMode" />
+      <label>Vehicle No:</label>
+      <input type="text" name="vehicleNo" />
+      <label>Date of Supply:</label>
+      <input type="date" name="dateOfSupply" />
+      <label>Place of Supply:</label>
+      <input type="text" name="placeOfSupply" />
+      <label>Bill To Name:</label>
+      <input type="text" name="billToName" />
+      <label>Bill To Address:</label>
+      <input type="text" name="billToAddress" />
+      <label>Ship To Name:</label>
+      <input type="text" name="shipToName" />
+      <label>Ship To Address:</label>
+      <input type="text" name="shipToAddress" />
+      <label>Bill To GSTIN:</label>
+      <input type="text" name="billToGSTIN" />
+      <label>Ship To GSTIN:</label>
+      <input type="text" name="shipToGSTIN" />
+      <label>GSTIN State:</label>
+      <input type="text" name="gstinState" />
+      <label>GSTIN State Code:</label>
+      <input type="text" name="gstinStateCode" />
+
+      <label>
+        <input type="checkbox" name="includeIGST" id="includeIGST" />
+        Include IGST (instead of CGST/SGST)
+      </label>
+
+      <div class="table-container">
+        <table id="dynamicTable">
+          <thead>
+            <tr>
+              <th>Item No</th>
+              <th>HSN Code</th>
+              <th>Description</th>
+              <th>Quantity</th>
+              <th>Rate</th>
+              <th>Amount</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <button type="button" class="addbutton" onclick="addRow()">Add Row</button>
+      </div>
+
+      <button type="submit">Generate Invoice</button>
+    </form>
+  </div>
+
+  <script>
+    function addRow() {
+      const tbody = document.querySelector("#dynamicTable tbody");
+      const index = tbody.rows.length;
+      const row = tbody.insertRow();
+
+      const fields = ["itemNo", "hsnCode", "description", "quantity", "rate", "amount"];
+      fields.forEach((field) => {
+        const cell = row.insertCell();
+        const input = document.createElement("input");
+        input.name = `items[${index}][${field}]`;
+        input.type = (["quantity", "rate", "amount"].includes(field)) ? "number" : "text";
+        if (["quantity", "rate"].includes(field)) {
+          input.step = "any";
+          input.addEventListener("input", () => updateAmount(row));
+        }
+        if (field === "amount") input.readOnly = true;
+        cell.appendChild(input);
+      });
+
+      // Remove button
+      const actionCell = row.insertCell();
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.textContent = "Remove";
+      removeBtn.className = "removeBtn";
+      removeBtn.onclick = () => row.remove();
+      actionCell.appendChild(removeBtn);
+    }
+
+    function updateAmount(row) {
+      const quantity = parseFloat(row.querySelector("input[name*='[quantity]']").value) || 0;
+      const rate = parseFloat(row.querySelector("input[name*='[rate]']").value) || 0;
+      const amount = (quantity * rate).toFixed(2);
+      row.querySelector("input[name*='[amount]']").value = amount;
+    }
+
+    document.getElementById("invoiceForm").addEventListener("submit", async function (event) {
+      event.preventDefault();
+
+      const formData = new FormData(this);
+      const jsonData = {};
+
+      // Flat fields
+      formData.forEach((value, key) => {
+        if (!key.startsWith("items[")) {
+          jsonData[key] = value || "";
+        }
+      });
+
+      // IGST checkbox
+      jsonData.includeIGST = document.getElementById("includeIGST").checked;
+
+      // Table rows
+      const items = [];
+      document.querySelectorAll("#dynamicTable tbody tr").forEach((row) => {
+        const rowData = {};
+        row.querySelectorAll("input").forEach((input) => {
+          const fieldName = input.name.match(/\[(.*?)\]$/)[1];
+          rowData[fieldName] = input.value || "";
+        });
+        items.push(rowData);
+      });
+      jsonData.items = items;
+
+      console.log("Sending data to server:", jsonData);
+
+      try {
+        const response = await fetch("http://localhost:5000/generate-invoice", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(jsonData),
+        });
+
+        if (!response.ok) throw new Error("Failed to generate invoice");
+
+        const blob = await response.blob();
+        const link = document.createElement("a");
+        link.href = window.URL.createObjectURL(blob);
+        link.download = "invoice_filled.docx";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (error) {
+        alert("Invoice generation failed.");
+        console.error("Error:", error);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# Node modules
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Output folder
+output/
+
+# Vercel or build-related
+.vercel/
+.env
+.DS_Store
+
+# OS / editor junk
+Thumbs.db
+.idea/
+.vscode/
