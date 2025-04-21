@@ -247,7 +247,7 @@
       console.log("Sending data to server:", jsonData);
 
       try {
-        const response = await fetch("http://localhost:5000/generate-invoice", {
+        const response = await fetch("https://gst-server-be.vercel.app/generate-invoice", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(jsonData),
